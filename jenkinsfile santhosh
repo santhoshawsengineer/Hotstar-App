@@ -1,0 +1,28 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Build') {
+            steps {
+                // Get some code from a GitHub repository
+                git 'https://github.com/santhoshawsgit/Hotstar-App.git'
+                
+             
+                // Run Maven on a Unix agent.
+                sh "mvn clean package -DskipTests"
+            }
+        }
+    }
+
+    post {
+        success {
+            sh "chmod 777 target/*.war"
+
+            sh "mv target/*.war /opt/tomcat/webapps/"
+            
+            sh'''cd /opt/tomcat/bin/
+            /opt/tomcat/bin/startup.sh
+            '''
+        }
+    }
+}

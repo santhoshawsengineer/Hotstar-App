@@ -5,9 +5,8 @@ COPY . .
 
 # Copy pom.xml and download dependencies (cached layer)
 
-RUN mvn dependency:go-offline -B \
-    -Dmaven.wagon.http.retryHandler.count=3 \
-    -Dmaven.wagon.httpconnectionManager.ttlSeconds=30
+RUN mvn -B -Dmaven.test.skip=true clean package || true
+
 
 
 

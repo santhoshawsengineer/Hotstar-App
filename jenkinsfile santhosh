@@ -16,7 +16,7 @@ pipeline {
                 sh "docker rm -f hotcontainer || true"
 
                //up the container 
-               sh "docker run -itd --name hotcontainer -p 8080:8081 hotstar"
+               sh "docker run -itd --name hotcontainer -p 8081:8080 hotstar"
             }
         }
     }

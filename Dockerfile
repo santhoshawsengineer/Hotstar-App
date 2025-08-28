@@ -2,7 +2,8 @@
 FROM maven:3.9.11-amazoncorretto-8-debian-trixie AS builder
 WORKDIR /app
 COPY . .
-RUN mvn dependency:go-offline -B
+RUN mvn -B -Dmaven.test.skip=true clean package || true
+
 RUN mvn clean package -DskipTests
 
 # ---------- Deployment stage ----------

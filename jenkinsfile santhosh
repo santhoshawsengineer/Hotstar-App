@@ -5,8 +5,8 @@ pipeline {
         stage('Build') {
             steps {
                 // Get some code from a GitHub repository
-                git branch: 'docker'
-                    url: 'https://github.com/santhoshawsgit/Hotstar-App.git'
+                git ( branch: 'docker',
+                        url: 'https://github.com/santhoshawsgit/Hotstar-App.git')
                 
              
                 // build docker image from docker file

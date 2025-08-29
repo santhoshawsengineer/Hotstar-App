@@ -11,7 +11,7 @@ Created a dockerfile and containerised the application and integrated it with je
 
 
 
-To run the project, just need to put the GitHub url in the jenkins pipeline and trigger the job.
+////To run the project, just need to put the GitHub url in the jenkins pipeline and trigger the job.
 
-That's it the project is up and running you will see a hotstar clone app webpage.
+That's it the project is up and running you will see a hotstar clone app webpage.////
 

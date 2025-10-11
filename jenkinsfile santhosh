@@ -6,7 +6,9 @@ pipeline {
         IMAGE_TAG = "v${BUILD_NUMBER}"
         GIT_REPO = "https://github.com/santhoshawsgit/Hotstar-App.git"
         GIT_BRANCH = "docker"
-        GIT_CREDENTIALS_ID = "github" // <-- change this to your Jenkins credentials ID
+        GIT_CREDENTIALS_ID = "github"       // GitHub credentials in Jenkins
+        DOCKERHUB_CREDENTIALS_ID = "dockerhub" // DockerHub credentials in Jenkins
+        SONARQUBE_CREDENTIALS_ID = "sonarqube" // SonarQube server ID in Jenkins
     }
 
     stages {
@@ -16,10 +18,32 @@ pipeline {
             }
         }
 
+        stage('SonarQube Scan') {
+            steps {
+                withSonarQubeEnv('SONARQUBE_SERVER') { // replace with your SonarQube server name
+                    sh "mvn clean verify sonar:sonar -Dsonar.projectKey=Hotstar-App -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_AUTH_TOKEN}"
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
                     sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                }
+            }
+        }
+
+        stage('Push Docker Image to Docker Hub') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh """
+                            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                            docker tag ${IMAGE_NAME}:${IMAGE_TAG} $DOCKER_USER/${IMAGE_NAME}:${IMAGE_TAG}
+                            docker push $DOCKER_USER/${IMAGE_NAME}:${IMAGE_TAG}
+                        """
+                    }
                 }
             }
         }

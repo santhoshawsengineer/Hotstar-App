@@ -1,24 +1,37 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "hotstar"
+        IMAGE_TAG = "v${BUILD_NUMBER}"
+    }
+
     stages {
-        stage('Build') {
+        stage('Checkout Code') {
             steps {
-                // Get some code from a GitHub repository
-                git ( branch: 'docker',
-                        url: 'https://github.com/santhoshawsgit/Hotstar-App.git')
-                
-             
-                // build docker image from docker file
-                sh "docker build -t hotstar ."
+                git branch: 'docker', url: 'https://github.com/santhoshawsgit/Hotstar-App.git'
+            }
+        }
 
-               //remove hotcontainer if already present
-                sh "docker rm -f hotcontainer || true"
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Build Docker image with Jenkins build number as tag
+                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                }
+            }
+        }
 
-               //up the container 
-               sh "docker run -itd --name hotcontainer -p 8081:8080 hotstar"
+        stage('Update Deployment YAML') {
+            steps {
+                script {
+                    // Update image line inside deployment.yaml file
+                    sh """
+                        sed -i 's|image: ${IMAGE_NAME}.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|g' k8s/deployment.yaml
+                    """
+                    echo "✅ Updated deployment.yaml with image tag: ${IMAGE_NAME}:${IMAGE_TAG}"
+                }
             }
         }
     }
-
 }

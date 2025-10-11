@@ -4,19 +4,21 @@ pipeline {
     environment {
         IMAGE_NAME = "hotstar"
         IMAGE_TAG = "v${BUILD_NUMBER}"
+        GIT_REPO = "https://github.com/santhoshawsgit/Hotstar-App.git"
+        GIT_BRANCH = "docker"
+        GIT_CREDENTIALS_ID = "github" // <-- change this to your Jenkins credentials ID
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'docker', url: 'https://github.com/santhoshawsgit/Hotstar-App.git'
+                git branch: "${GIT_BRANCH}", url: "${GIT_REPO}"
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build Docker image with Jenkins build number as tag
                     sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                 }
             }
@@ -25,11 +27,28 @@ pipeline {
         stage('Update Deployment YAML') {
             steps {
                 script {
-                    // Update image line inside deployment.yaml file
+                    // Update image tag in deployment.yaml
                     sh """
                         sed -i 's|image: ${IMAGE_NAME}.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|g' k8s/deployment.yaml
                     """
-                    echo "✅ Updated deployment.yaml with image tag: ${IMAGE_NAME}:${IMAGE_TAG}"
+                    echo "✅ Updated deployment.yaml with image tag ${IMAGE_TAG}"
+                }
+            }
+        }
+
+        stage('Commit & Push to GitHub') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: "${GIT_CREDENTIALS_ID}", usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+                        sh '''
+                            git config user.name "Jenkins CI"
+                            git config user.email "jenkins@localhost"
+                            git add k8s/deployment.yaml
+                            git commit -m "Updated image tag to ${IMAGE_TAG}" || echo "No changes to commit"
+                            git push https://${GIT_USER}:${GIT_TOKEN}@github.com/santhoshawsgit/Hotstar-App.git ${GIT_BRANCH}
+                        '''
+                    }
+                    echo "✅ Changes pushed to GitHub branch: ${GIT_BRANCH}"
                 }
             }
         }

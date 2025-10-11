@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: hotstar
-        image: hotstar
+        image: hotstar:v5
         ports:
         - containerPort: 8080

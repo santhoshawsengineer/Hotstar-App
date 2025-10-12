@@ -1,6 +1,12 @@
 pipeline {
     agent any
 
+ // ← Add tools here
+    tools {
+        maven 'MAVEN3'       // This must match the name you configured in Jenkins Global Tool Configuration
+    
+    }
+
     environment {
         IMAGE_NAME = "hotstar"
         IMAGE_TAG = "v${BUILD_NUMBER}"

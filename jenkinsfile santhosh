@@ -7,11 +7,12 @@ pipeline {
         GIT_REPO = "https://github.com/santhoshawsgit/Hotstar-App.git"
         GIT_BRANCH = "docker"
         GIT_CREDENTIALS_ID = "github"       // GitHub credentials in Jenkins
-        DOCKERHUB_CREDENTIALS_ID = "dockerhub" // DockerHub credentials in Jenkins
+        DOCKERHUB_CREDENTIALS_ID = "dockerhub" // DockerHub credentials ID in Jenkins
         SONARQUBE_CREDENTIALS_ID = "sonarqube" // SonarQube server ID in Jenkins
     }
 
     stages {
+
         stage('Checkout Code') {
             steps {
                 git branch: "${GIT_BRANCH}", url: "${GIT_REPO}"
@@ -21,7 +22,12 @@ pipeline {
         stage('SonarQube Scan') {
             steps {
                 withSonarQubeEnv('SONARQUBE_SERVER') { // replace with your SonarQube server name
-                    sh "mvn clean verify sonar:sonar -Dsonar.projectKey=Hotstar-App -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_AUTH_TOKEN}"
+                    sh '''
+                        mvn clean verify sonar:sonar \
+                        -Dsonar.projectKey=Hotstar-App \
+                        -Dsonar.host.url=$SONAR_HOST_URL \
+                        -Dsonar.login=$SONAR_AUTH_TOKEN
+                    '''
                 }
             }
         }
@@ -34,6 +40,7 @@ pipeline {
             }
         }
 
+        // ✅ Stage to push image to Docker Hub using Jenkins credentials
         stage('Push Docker Image to Docker Hub') {
             steps {
                 script {
@@ -42,6 +49,7 @@ pipeline {
                             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
                             docker tag ${IMAGE_NAME}:${IMAGE_TAG} $DOCKER_USER/${IMAGE_NAME}:${IMAGE_TAG}
                             docker push $DOCKER_USER/${IMAGE_NAME}:${IMAGE_TAG}
+                            docker logout
                         """
                     }
                 }
@@ -51,9 +59,9 @@ pipeline {
         stage('Update Deployment YAML') {
             steps {
                 script {
-                    // Update image tag in deployment.yaml
+                    // Update image reference inside deployment.yaml
                     sh """
-                        sed -i 's|image: ${IMAGE_NAME}.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|g' k8s/deployment.yaml
+                        sed -i 's|image: .*|image: ${IMAGE_NAME}:${IMAGE_TAG}|g' k8s/deployment.yaml
                     """
                     echo "✅ Updated deployment.yaml with image tag ${IMAGE_TAG}"
                 }

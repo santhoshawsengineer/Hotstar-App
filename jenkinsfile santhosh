@@ -63,7 +63,7 @@ pipeline {
                 script {
                     // Update image reference inside deployment.yaml
                     sh """
-                        sed -i 's|image: .*|image: ${IMAGE_NAME}:${IMAGE_TAG}|g' k8s/deployment.yaml
+                        sed -i 's|image: .*|image: $DOCKER_USER/${IMAGE_NAME}:${IMAGE_TAG}|g' k8s/deployment.yaml
                     """
                     echo "✅ Updated deployment.yaml with image tag ${IMAGE_TAG}"
                 }

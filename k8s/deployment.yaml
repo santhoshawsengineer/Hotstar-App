@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: hotstar
-        image: hotstar:v18
+        image: santhoshawsdocker/hotstar:v16
         ports:
         - containerPort: 8080

@@ -60,15 +60,17 @@ pipeline {
 
         stage('Update Deployment YAML') {
             steps {
-                script {
-                    // Update image reference inside deployment.yaml
-                    sh """
-                        sed -i 's|image: .*|image: $DOCKER_USER/${IMAGE_NAME}:${IMAGE_TAG}|g' k8s/deployment.yaml
-                    """
-                    echo "✅ Updated deployment.yaml with image tag ${IMAGE_TAG}"
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    script {
+                        sh """
+                            sed -i 's|image: .*|image: $DOCKER_USER/${IMAGE_NAME}:${IMAGE_TAG}|g' k8s/deployment.yaml
+                        """
+                        echo "✅ Updated deployment.yaml with image tag ${IMAGE_TAG}"
+                    }
                 }
             }
         }
+
 
         stage('Commit & Push to GitHub') {
             steps {

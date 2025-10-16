@@ -88,6 +88,7 @@ EOF
 #############################
 resource "aws_instance" "ec2_sonarqube" {
   ami                         = var.ec2_ami  
+  instance_type               = "t3.medium"
   subnet_id                   = aws_subnet.dockerpubsub.id
   vpc_security_group_ids      = [aws_security_group.ec2_sg.id]
   key_name                    = var.key_pair_name
